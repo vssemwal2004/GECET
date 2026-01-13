@@ -3,37 +3,43 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import adminRoutes from './routes/adminRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '..', '.env'), override: true });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Create uploads directory if it doesn't exist
 const uploadDir = 'uploads';
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/gecet', {
+
+const mongoURI = process.env.MONGODB_URI;
+
+
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
 .then(() => console.log('✅ MongoDB connected successfully'))
 .catch((err) => {
   console.error('❌ MongoDB connection error:', err);
+  console.error('Connection URI used:', mongoURI);
   process.exit(1);
 });
 
-// Routes
 app.get('/', (req, res) => {
   res.json({ 
     success: true,
@@ -49,7 +55,6 @@ app.get('/', (req, res) => {
 app.use('/api/admin', adminRoutes);
 app.use('/api/student', studentRoutes);
 
-// 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -57,7 +62,6 @@ app.use((req, res) => {
   });
 });
 
-// Error Handler
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({
