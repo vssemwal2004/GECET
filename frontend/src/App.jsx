@@ -1,14 +1,52 @@
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AdminRoute, StudentRoute } from './components/ProtectedRoute';
+
+// Pages
+import Home from './pages/Home';
+import Login from './pages/Login';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import StudentDashboard from './pages/student/StudentDashboard';
 
 function App() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold text-white mb-4">GECET</h1>
-        <p className="text-xl text-white">Welcome to your React + Vite + Tailwind CSS application</p>
-      </div>
-    </div>
-  )
+    <Router>
+      <Routes>
+        {/* Home */}
+        <Route path="/" element={<Home />} />
+
+        {/* Unified Login */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Admin Dashboard */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+
+        {/* Student Dashboard */}
+        <Route
+          path="/student/dashboard"
+          element={
+            <StudentRoute>
+              <StudentDashboard />
+            </StudentRoute>
+          }
+        />
+
+        {/* Legacy routes redirect to unified login */}
+        <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+        <Route path="/student/login" element={<Navigate to="/login" replace />} />
+        <Route path="/student/otp" element={<Navigate to="/login" replace />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
