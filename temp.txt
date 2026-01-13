@@ -1,0 +1,6 @@
+name,email,phone,course,campus,offerLetterLink,result,paymentLink
+John Doe,john.doe@example.com,9876543210,Computer Science,Main Campus,https://example.com/offer/john.pdf,Accepted,https://example.com/payment/john
+Jane Smith,jane.smith@example.com,9876543211,Electrical Engineering,North Campus,https://example.com/offer/jane.pdf,Accepted,https://example.com/payment/jane
+Bob Johnson,bob.johnson@example.com,9876543212,Mechanical Engineering,Main Campus,https://example.com/offer/bob.pdf,Pending,https://example.com/payment/bob
+Alice Brown,alice.brown@example.com,9876543213,Civil Engineering,South Campus,https://example.com/offer/alice.pdf,Accepted,https://example.com/payment/alice
+
