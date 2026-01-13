@@ -27,13 +27,18 @@ export const sendStudentOTP = async (req, res) => {
       });
     }
 
-    // Check if student exists
-    const student = await Student.findOne({ phone });
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found with this phone number'
-      });
+    const adminPhone = process.env.ADMIN_PHONE;
+    const isAdminPhone = adminPhone && phone === adminPhone;
+
+    // If not admin phone, ensure student exists
+    if (!isAdminPhone) {
+      const student = await Student.findOne({ phone });
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found with this phone number'
+        });
+      }
     }
 
     // Rate limiting: Check if OTP was sent recently (within last minute)
@@ -126,7 +131,36 @@ export const verifyStudentOTP = async (req, res) => {
       });
     }
 
-    // Find student
+    // Delete used OTP
+    await OTP.deleteOne({ _id: otpRecord._id });
+
+    const adminPhone = process.env.ADMIN_PHONE;
+
+    // If phone matches admin phone, log in as admin
+    if (adminPhone && phone === adminPhone) {
+      const token = jwt.sign(
+        {
+          phone,
+          role: 'admin'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      );
+
+      return res.json({
+        success: true,
+        message: 'Admin login successful',
+        token,
+        user: {
+          name: 'Admin',
+          email: process.env.ADMIN_EMAIL || '',
+          phone,
+          role: 'admin'
+        }
+      });
+    }
+
+    // Otherwise, treat as student login
     const student = await Student.findOne({ phone });
 
     if (!student) {
@@ -136,15 +170,11 @@ export const verifyStudentOTP = async (req, res) => {
       });
     }
 
-    // Delete used OTP
-    await OTP.deleteOne({ _id: otpRecord._id });
-
-    // Generate JWT token
     const token = jwt.sign(
-      { 
-        studentId: student._id, 
-        phone: student.phone, 
-        role: 'student' 
+      {
+        studentId: student._id,
+        phone: student.phone,
+        role: 'student'
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
