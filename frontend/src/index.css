@@ -1,3 +1,36 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary-purple: #1600B2;
+    --color-primary-blue: #1600B2;
+    --color-accent-yellow: #FFC200;
+    --color-heading-dark: #1a1f3a;
+    --color-pure-white: #ffffff;
+    --color-text-muted: #6b7280;
+  }
+
+  body {
+    @apply text-gray-900 bg-white;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#1600B2] text-white px-6 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity;
+  }
+
+  .btn-accent {
+    @apply bg-[#FFC200] text-[#1a1f3a] px-6 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity;
+  }
+
+  .heading {
+    @apply text-[#1a1f3a] font-bold;
+  }
+
+  .text-muted {
+    @apply text-[#6b7280];
+  }
+}
