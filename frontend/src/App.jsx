@@ -4,7 +4,8 @@ import { AdminRoute, StudentRoute } from './components/ProtectedRoute';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
-import AdminDashboard from './pages/admin/AdminDashboard';
+import UploadStudents from './pages/admin/UploadStudents';
+import StudentDatabase from './pages/admin/StudentDatabase';
 import StudentDashboard from './pages/student/StudentDashboard';
 
 function App() {
@@ -22,7 +23,23 @@ function App() {
           path="/admin/dashboard"
           element={
             <AdminRoute>
-              <AdminDashboard />
+              <Navigate to="/admin/upload" replace />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/upload"
+          element={
+            <AdminRoute>
+              <UploadStudents />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/database"
+          element={
+            <AdminRoute>
+              <StudentDatabase />
             </AdminRoute>
           }
         />
