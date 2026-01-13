@@ -1,26 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI, studentAPI } from '../services/api';
 import { saveAuth } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [loginType, setLoginType] = useState('student'); // 'admin' or 'student'
+  const [loginType, setLoginType] = useState('student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Admin form
   const [adminData, setAdminData] = useState({ email: '', password: '' });
   
-  // Student form
   const [phone, setPhone] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOTP] = useState('');
   const [timer, setTimer] = useState(0);
   const [devOTP, setDevOTP] = useState('');
 
-  // Timer countdown
-  useState(() => {
+  useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => {
         setTimer((prev) => {
@@ -41,7 +38,6 @@ const Login = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Admin Login Handler
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -61,7 +57,6 @@ const Login = () => {
     }
   };
 
-  // Student Send OTP Handler
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setError('');
@@ -78,7 +73,7 @@ const Login = () => {
       
       if (response.data.success) {
         setOtpSent(true);
-        setTimer(300); // 5 minutes
+        setTimer(300);
         setDevOTP(response.data.devOTP || '');
         setError('');
       }
@@ -89,7 +84,6 @@ const Login = () => {
     }
   };
 
-  // Student Verify OTP Handler
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setError('');
@@ -144,188 +138,198 @@ const Login = () => {
   };
 
   return (
-    <div className="container-center">
-      <div className="card w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="heading text-3xl mb-2">GECET Login</h1>
-          <p className="text-gray-600">Welcome to Student Admission Portal</p>
+    <div className="min-h-screen bg-pure-white flex items-center justify-center p-8">
+      <div className="w-full max-w-6xl h-[480px] bg-pure-white shadow-2xl rounded-2xl overflow-hidden flex">
+        
+        {/* Left Section - Image Only (70%) */}
+        <div className="w-[70%] relative bg-gray-50 flex items-center justify-center">
+          <img 
+            src="/assects/login-lmgg.webp" 
+            alt="GECET Login" 
+            className="w-full h-full object-contain"
+          />
         </div>
 
-        {/* Login Type Toggle */}
-        <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
-          <button
-            type="button"
-            onClick={() => {
-              setLoginType('student');
-              setError('');
-              resetStudentForm();
-            }}
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-              loginType === 'student'
-                ? 'bg-white text-[#2563eb] shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Student Login
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setLoginType('admin');
-              setError('');
-              resetStudentForm();
-            }}
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-              loginType === 'admin'
-                ? 'bg-white text-[#1e293b] shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Admin Login
-          </button>
-        </div>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
-            {error}
+        {/* Right Section - Login Panel (30%) */}
+        <div className="w-[30%] bg-primary-purple flex flex-col justify-center px-10">
+          
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-pure-white mb-2">Welcome</h1>
+            <p className="text-pure-white text-sm opacity-90">Login to your account</p>
           </div>
-        )}
 
-        {devOTP && (
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded-lg mb-4">
-            <strong>Development Mode:</strong> OTP is {devOTP}
+          {/* Tab Switcher */}
+          <div className="flex gap-1 mb-6 bg-white bg-opacity-10 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => {
+                setLoginType('student');
+                setError('');
+                resetStudentForm();
+              }}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                loginType === 'student'
+                  ? 'bg-pure-white text-primary-purple'
+                  : 'text-pure-white hover:bg-white hover:bg-opacity-5'
+              }`}
+            >
+              Student
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLoginType('admin');
+                setError('');
+                resetStudentForm();
+              }}
+              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                loginType === 'admin'
+                  ? 'bg-pure-white text-primary-purple'
+                  : 'text-pure-white hover:bg-white hover:bg-opacity-5'
+              }`}
+            >
+              Admin
+            </button>
           </div>
-        )}
 
-        {/* Admin Login Form */}
-        {loginType === 'admin' && (
-          <form onSubmit={handleAdminLogin} className="space-y-4">
-            <div>
-              <label className="label">Email</label>
-              <input
-                type="email"
-                value={adminData.email}
-                onChange={(e) => setAdminData({ ...adminData, email: e.target.value })}
-                className="input-field"
-                placeholder="admin@example.com"
-                required
-              />
+          {error && (
+            <div className="bg-red-500 bg-opacity-20 border border-red-300 text-pure-white px-3 py-2 rounded-lg mb-4 text-sm">
+              {error}
             </div>
+          )}
 
-            <div>
-              <label className="label">Password</label>
-              <input
-                type="password"
-                value={adminData.password}
-                onChange={(e) => setAdminData({ ...adminData, password: e.target.value })}
-                className="input-field"
-                placeholder="Enter your password"
-                required
-              />
+          {devOTP && (
+            <div className="bg-accent-yellow bg-opacity-20 border border-accent-yellow text-pure-white px-3 py-2 rounded-lg mb-4 text-sm">
+              <strong>Dev OTP:</strong> {devOTP}
             </div>
+          )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-secondary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Logging in...' : 'Login as Admin'}
-            </button>
-          </form>
-        )}
-
-        {/* Student Login Form */}
-        {loginType === 'student' && !otpSent && (
-          <form onSubmit={handleSendOTP} className="space-y-4">
-            <div>
-              <label className="label">Mobile Number</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                className="input-field"
-                placeholder="Enter 10 digit mobile number"
-                maxLength={10}
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                You will receive an OTP on this number
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || phone.length !== 10}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending OTP...' : 'Send OTP'}
-            </button>
-          </form>
-        )}
-
-        {/* Student OTP Verification Form */}
-        {loginType === 'student' && otpSent && (
-          <form onSubmit={handleVerifyOTP} className="space-y-4">
-            <div className="text-center mb-4">
-              <p className="text-sm text-gray-600">
-                OTP sent to <span className="font-semibold">{phone}</span>
-              </p>
-            </div>
-
-            <div>
-              <label className="label">Enter OTP</label>
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) => setOTP(e.target.value.replace(/\D/g, ''))}
-                className="input-field text-center text-2xl tracking-widest"
-                placeholder="000000"
-                maxLength={6}
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1 text-center">
-                {timer > 0 ? (
-                  <>OTP expires in <span className="font-semibold text-[#dc2626]">{formatTime(timer)}</span></>
-                ) : (
-                  <span className="text-[#dc2626]">OTP expired</span>
-                )}
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || otp.length !== 6 || timer === 0}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Verifying...' : 'Verify OTP & Login'}
-            </button>
-
-            <div className="text-center space-y-2">
-              <button
-                type="button"
-                onClick={handleResendOTP}
-                disabled={loading || timer > 240}
-                className="text-[#2563eb] hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Resending...' : 'Resend OTP'}
-              </button>
-              {timer > 240 && (
-                <p className="text-xs text-gray-500">
-                  Resend available after 1 minute
-                </p>
-              )}
+          {/* Admin Login Form */}
+          {loginType === 'admin' && (
+            <form onSubmit={handleAdminLogin} className="space-y-4">
               <div>
+                <label className="block text-pure-white text-sm mb-2 font-medium">Email</label>
+                <input
+                  type="email"
+                  value={adminData.email}
+                  onChange={(e) => setAdminData({ ...adminData, email: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
+                  placeholder="admin@gecet.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-pure-white text-sm mb-2 font-medium">Password</label>
+                <input
+                  type="password"
+                  value={adminData.password}
+                  onChange={(e) => setAdminData({ ...adminData, password: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-accent-yellow text-heading-dark font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+          )}
+
+          {/* Student Login Form */}
+          {loginType === 'student' && !otpSent && (
+            <form onSubmit={handleSendOTP} className="space-y-4">
+              <div>
+                <label className="block text-pure-white text-sm mb-2 font-medium">Mobile Number</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
+                  placeholder="Enter 10 digit number"
+                  maxLength={10}
+                  required
+                />
+                <p className="text-pure-white text-xs mt-2 opacity-70">
+                  OTP will be sent to this number
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || phone.length !== 10}
+                className="w-full bg-accent-yellow text-heading-dark font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              >
+                {loading ? 'Sending...' : 'Send OTP'}
+              </button>
+            </form>
+          )}
+
+          {/* Student OTP Verification Form */}
+          {loginType === 'student' && otpSent && (
+            <form onSubmit={handleVerifyOTP} className="space-y-4">
+              <div className="mb-4">
+                <p className="text-pure-white text-sm opacity-90">
+                  OTP sent to <span className="font-semibold">{phone}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-pure-white text-sm mb-2 font-medium">Enter OTP</label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOTP(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white text-center text-2xl tracking-widest placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
+                  placeholder="000000"
+                  maxLength={6}
+                  required
+                />
+                <p className="text-pure-white text-xs mt-2 text-center opacity-80">
+                  {timer > 0 ? (
+                    <>Expires in <span className="font-semibold">{formatTime(timer)}</span></>
+                  ) : (
+                    <span className="text-accent-yellow">OTP expired</span>
+                  )}
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 6 || timer === 0}
+                className="w-full bg-accent-yellow text-heading-dark font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+              >
+                {loading ? 'Verifying...' : 'Verify & Login'}
+              </button>
+
+              <div className="text-center space-y-2 mt-4">
                 <button
                   type="button"
-                  onClick={resetStudentForm}
-                  className="text-gray-600 hover:underline text-sm"
+                  onClick={handleResendOTP}
+                  disabled={loading || timer > 240}
+                  className="text-accent-yellow hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  ← Change Mobile Number
+                  Resend OTP
                 </button>
+                <div>
+                  <button
+                    type="button"
+                    onClick={resetStudentForm}
+                    className="text-pure-white hover:underline text-sm opacity-80"
+                  >
+                    ← Change Number
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
+
+        </div>
       </div>
     </div>
   );
