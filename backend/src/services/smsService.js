@@ -1,33 +1,36 @@
 import axios from 'axios';
 
 /**
- * Send OTP via 99SMSService
+ * Send OTP via MSG91
  * @param {string} phone - 10 digit mobile number
  * @param {string} otp - OTP to send
  * @returns {Promise<boolean>} - Success status
  */
 export const sendOTP = async (phone, otp) => {
   try {
-    // 99SMS Service API Integration
-    // Replace this URL with actual 99SMS API endpoint
-    const apiUrl = 'https://api.99smsservice.com/api/v2/SendSMS';
+
+    const apiUrl = 'https://control.msg91.com/api/v5/flow';
     
     const payload = {
-      ApiKey: process.env.SMS_API_KEY,
-      ClientId: process.env.SMS_SENDER_ID,
-      MobileNumbers: phone,
-      Message: `Your GECET OTP is: ${otp}. Valid for 5 minutes. Do not share this code with anyone.`,
-      SenderId: process.env.SMS_SENDER_ID
+      template_id: process.env.SMS_TEMPLATE_ID,
+      recipients: [
+        {
+          mobiles: `91${phone}`,
+          OTP: otp,
+          Validity: "5"
+        }
+      ]
     };
 
     const response = await axios.post(apiUrl, payload, {
       headers: {
-        'Content-Type': 'application/json'
+        'accept': 'application/json',
+        'authkey': process.env.SMS_API_KEY,
+        'content-type': 'application/json'
       }
     });
 
-    // Check if SMS was sent successfully
-    if (response.data && response.data.status === 'success') {
+    if (response.data && response.data.type === 'success') {
       console.log(`OTP sent successfully to ${phone}`);
       return true;
     }

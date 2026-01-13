@@ -12,7 +12,6 @@ const Login = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOTP] = useState('');
   const [timer, setTimer] = useState(0);
-  const [devOTP, setDevOTP] = useState('');
 
   useEffect(() => {
     if (timer > 0) {
@@ -52,7 +51,6 @@ const Login = () => {
       if (response.data.success) {
         setOtpSent(true);
         setTimer(300);
-        setDevOTP(response.data.devOTP || '');
         setError('');
       }
     } catch (err) {
@@ -103,7 +101,6 @@ const Login = () => {
       if (response.data.success) {
         setTimer(300);
         setOTP('');
-        setDevOTP(response.data.devOTP || '');
         alert('OTP resent successfully!');
       }
     } catch (err) {
@@ -119,7 +116,6 @@ const Login = () => {
     setOTP('');
     setTimer(0);
     setError('');
-    setDevOTP('');
   };
 
   return (
@@ -148,12 +144,6 @@ const Login = () => {
           {error && (
             <div className="bg-red-500 bg-opacity-20 border border-red-300 text-pure-white px-3 py-2 rounded-lg mb-4 text-sm">
               {error}
-            </div>
-          )}
-
-          {devOTP && (
-            <div className="bg-accent-yellow bg-opacity-20 border border-accent-yellow text-pure-white px-3 py-2 rounded-lg mb-4 text-sm">
-              <strong>Dev OTP:</strong> {devOTP}
             </div>
           )}
 

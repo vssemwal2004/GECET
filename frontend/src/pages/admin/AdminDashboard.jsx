@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
 import { logout, getUser } from '../../utils/auth';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -12,9 +14,13 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [announcement, setAnnouncement] = useState('');
+  const [announcementLoading, setAnnouncementLoading] = useState(false);
+  const [announcementSuccess, setAnnouncementSuccess] = useState('');
 
   useEffect(() => {
     fetchStudents();
+    fetchAnnouncement();
   }, []);
 
   const fetchStudents = async () => {
@@ -73,6 +79,35 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchAnnouncement = async () => {
+    try {
+      const response = await adminAPI.getAnnouncement();
+      if (response.data.success) {
+        setAnnouncement(response.data.announcement.content);
+      }
+    } catch (err) {
+      console.error('Failed to fetch announcement:', err);
+    }
+  };
+
+  const handleUpdateAnnouncement = async () => {
+    setAnnouncementLoading(true);
+    setAnnouncementSuccess('');
+
+    try {
+      const response = await adminAPI.updateAnnouncement(announcement);
+      if (response.data.success) {
+        setAnnouncementSuccess('Announcement updated successfully!');
+        setTimeout(() => setAnnouncementSuccess(''), 3000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update announcement');
+    } finally {
+      setAnnouncementLoading(false);
+    }
+  };
+
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -94,6 +129,54 @@ const AdminDashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Announcement Section */}
+        <div className="card mb-8">
+          <h2 className="heading text-xl mb-4">Announcement Message</h2>
+          <p className="text-gray-600 mb-4 text-sm">
+            This message will be visible to all students on their dashboard
+          </p>
+
+          {announcementSuccess && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4">
+              {announcementSuccess}
+            </div>
+          )}
+
+          <ReactQuill
+            theme="snow"
+            value={announcement}
+            onChange={setAnnouncement}
+            className="bg-white mb-4"
+            modules={{
+              toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'align': [] }],
+                ['link'],
+                ['clean']
+              ]
+            }}
+            formats={[
+              'header',
+              'bold', 'italic', 'underline', 'strike',
+              'list', 'bullet',
+              'color', 'background',
+              'align',
+              'link'
+            ]}
+          />
+
+          <button
+            onClick={handleUpdateAnnouncement}
+            disabled={announcementLoading}
+            className="btn-primary mt-4"
+          >
+            {announcementLoading ? 'Updating...' : 'Update Announcement'}
+          </button>
+        </div>
+
         {/* CSV Upload Section */}
         <div className="card mb-8">
           <h2 className="heading text-xl mb-4">Upload Student Data</h2>

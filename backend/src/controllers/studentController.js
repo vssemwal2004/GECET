@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import Student from '../models/Student.js';
 import OTP from '../models/OTP.js';
+import Announcement from '../models/Announcement.js';
 import { generateOTP, sendOTP } from '../services/smsService.js';
 
 /**
@@ -70,16 +71,11 @@ export const sendStudentOTP = async (req, res) => {
     const smsSent = await sendOTP(phone, otp);
 
     if (!smsSent) {
-      console.error('Failed to send SMS, but OTP saved in DB');
-      // In development, you might want to return the OTP
-      // Remove this in production!
-      if (process.env.NODE_ENV === 'development') {
-        return res.json({
-          success: true,
-          message: 'OTP generated (SMS service unavailable)',
-          devOTP: otp // Only for development
-        });
-      }
+      console.error('Failed to send SMS');
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send OTP. Please try again.'
+      });
     }
 
     res.json({
@@ -242,3 +238,32 @@ export const getStudentProfile = async (req, res) => {
     });
   }
 };
+
+/**
+ * Get Announcement for Students
+ * GET /api/student/announcement
+ */
+export const getStudentAnnouncement = async (req, res) => {
+  try {
+    let announcement = await Announcement.findOne().sort({ updatedAt: -1 });
+    
+    if (!announcement) {
+      announcement = {
+        content: '<p>Welcome to GECET Admission Portal!</p>',
+        updatedAt: new Date()
+      };
+    }
+
+    res.json({
+      success: true,
+      announcement
+    });
+  } catch (error) {
+    console.error('Get announcement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch announcement'
+    });
+  }
+};
+

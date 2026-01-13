@@ -46,14 +46,17 @@ export const adminAPI = {
       'Content-Type': 'multipart/form-data'
     }
   }),
-  getStudents: () => api.get('/admin/students')
+  getStudents: () => api.get('/admin/students'),
+  getAnnouncement: () => api.get('/admin/announcement'),
+  updateAnnouncement: (content) => api.put('/admin/announcement', { content })
 };
 
 // Student APIs
 export const studentAPI = {
   sendOTP: (phone) => api.post('/student/send-otp', { phone }),
   verifyOTP: (phone, otp) => api.post('/student/verify-otp', { phone, otp }),
-  getProfile: () => api.get('/student/profile')
+  getProfile: () => api.get('/student/profile'),
+  getAnnouncement: () => api.get('/student/announcement')
 };
 
 export default api;

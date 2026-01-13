@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import AdminNavbar from '../../components/AdminNavbar';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const UploadStudents = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -8,6 +10,42 @@ const UploadStudents = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [uploadResult, setUploadResult] = useState(null);
+  const [announcement, setAnnouncement] = useState('');
+  const [announcementLoading, setAnnouncementLoading] = useState(false);
+  const [announcementSuccess, setAnnouncementSuccess] = useState('');
+
+  useEffect(() => {
+    fetchAnnouncement();
+  }, []);
+
+  const fetchAnnouncement = async () => {
+    try {
+      const response = await adminAPI.getAnnouncement();
+      if (response.data.success) {
+        setAnnouncement(response.data.announcement.content);
+      }
+    } catch (err) {
+      console.error('Failed to fetch announcement:', err);
+    }
+  };
+
+  const handleUpdateAnnouncement = async () => {
+    setAnnouncementLoading(true);
+    setAnnouncementSuccess('');
+
+    try {
+      const response = await adminAPI.updateAnnouncement(announcement);
+      if (response.data.success) {
+        setAnnouncementSuccess('Announcement updated successfully!');
+        setTimeout(() => setAnnouncementSuccess(''), 3000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update announcement');
+      setTimeout(() => setError(''), 3000);
+    } finally {
+      setAnnouncementLoading(false);
+    }
+  };
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
@@ -84,6 +122,61 @@ const UploadStudents = () => {
       
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-5xl mx-auto">
+          
+          {/* Announcement Section */}
+          <div className="bg-pure-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
+            <h2 className="text-xl font-semibold text-heading-dark mb-2">📢 Announcement Message</h2>
+            <p className="text-text-muted text-sm mb-4">
+              This message will be visible to all students on their dashboard
+            </p>
+
+            {announcementSuccess && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-lg mb-4 text-sm">
+                <div className="flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  {announcementSuccess}
+                </div>
+              </div>
+            )}
+
+            <ReactQuill
+              theme="snow"
+              value={announcement}
+              onChange={setAnnouncement}
+              className="bg-white mb-4 rounded-lg"
+              style={{ minHeight: '150px' }}
+              modules={{
+                toolbar: [
+                  [{ 'header': [1, 2, 3, false] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                  [{ 'color': [] }, { 'background': [] }],
+                  [{ 'align': [] }],
+                  ['link'],
+                  ['clean']
+                ]
+              }}
+              formats={[
+                'header',
+                'bold', 'italic', 'underline', 'strike',
+                'list', 'bullet',
+                'color', 'background',
+                'align',
+                'link'
+              ]}
+            />
+
+            <button
+              onClick={handleUpdateAnnouncement}
+              disabled={announcementLoading}
+              className="bg-primary-purple text-pure-white px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            >
+              {announcementLoading ? 'Updating...' : 'Update Announcement'}
+            </button>
+          </div>
+
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold text-heading-dark mb-1">Upload Student Data</h2>
             <p className="text-text-muted text-sm">Upload a CSV file containing student information</p>

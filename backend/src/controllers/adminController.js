@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import Student from '../models/Student.js';
+import Announcement from '../models/Announcement.js';
 import fs from 'fs';
 import csvParser from 'csv-parser';
 
@@ -224,3 +225,75 @@ export const getAllStudents = async (req, res) => {
     });
   }
 };
+
+/**
+ * Get Announcement
+ * GET /api/admin/announcement
+ */
+export const getAnnouncement = async (req, res) => {
+  try {
+    let announcement = await Announcement.findOne().sort({ updatedAt: -1 });
+    
+    // Create default announcement if none exists
+    if (!announcement) {
+      announcement = await Announcement.create({
+        content: '<p>Welcome to GECET Admission Portal!</p>',
+        updatedBy: 'Admin'
+      });
+    }
+
+    res.json({
+      success: true,
+      announcement
+    });
+  } catch (error) {
+    console.error('Get announcement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch announcement'
+    });
+  }
+};
+
+/**
+ * Update Announcement
+ * PUT /api/admin/announcement
+ */
+export const updateAnnouncement = async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (content === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content is required'
+      });
+    }
+
+    let announcement = await Announcement.findOne().sort({ updatedAt: -1 });
+
+    if (!announcement) {
+      announcement = await Announcement.create({
+        content,
+        updatedBy: req.user?.email || 'Admin'
+      });
+    } else {
+      announcement.content = content;
+      announcement.updatedBy = req.user?.email || 'Admin';
+      await announcement.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Announcement updated successfully',
+      announcement
+    });
+  } catch (error) {
+    console.error('Update announcement error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update announcement'
+    });
+  }
+};
+
