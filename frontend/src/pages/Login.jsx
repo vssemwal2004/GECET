@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { adminAPI, studentAPI } from '../services/api';
+import { studentAPI } from '../services/api';
 import { saveAuth } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
-  const [loginType, setLoginType] = useState('student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const [adminData, setAdminData] = useState({ email: '', password: '' });
-  
+
   const [phone, setPhone] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOTP] = useState('');
@@ -36,25 +33,6 @@ const Login = () => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await adminAPI.login(adminData);
-      
-      if (response.data.success) {
-        saveAuth(response.data.token, response.data.user);
-        navigate('/admin/dashboard');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleSendOTP = async (e) => {
@@ -97,10 +75,16 @@ const Login = () => {
 
     try {
       const response = await studentAPI.verifyOTP(phone, otp);
-      
+
       if (response.data.success) {
-        saveAuth(response.data.token, response.data.user);
-        navigate('/student/dashboard');
+        const { token, user } = response.data;
+        saveAuth(token, user);
+
+        if (user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/student/dashboard');
+        }
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid OTP. Please try again.');
@@ -129,12 +113,13 @@ const Login = () => {
     }
   };
 
-  const resetStudentForm = () => {
+  const resetForm = () => {
     setOtpSent(false);
     setPhone('');
     setOTP('');
     setTimer(0);
     setError('');
+    setDevOTP('');
   };
 
   return (
@@ -158,39 +143,7 @@ const Login = () => {
             <p className="text-pure-white text-sm opacity-90">Login to your account</p>
           </div>
 
-          {/* Tab Switcher */}
-          <div className="flex gap-1 mb-6 bg-white bg-opacity-10 p-1 rounded-lg">
-            <button
-              type="button"
-              onClick={() => {
-                setLoginType('student');
-                setError('');
-                resetStudentForm();
-              }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                loginType === 'student'
-                  ? 'bg-pure-white text-primary-purple'
-                  : 'text-pure-white hover:bg-white hover:bg-opacity-5'
-              }`}
-            >
-              Student
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setLoginType('admin');
-                setError('');
-                resetStudentForm();
-              }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                loginType === 'admin'
-                  ? 'bg-pure-white text-primary-purple'
-                  : 'text-pure-white hover:bg-white hover:bg-opacity-5'
-              }`}
-            >
-              Admin
-            </button>
-          </div>
+          {/* Single login type - phone + OTP */}
 
           {error && (
             <div className="bg-red-500 bg-opacity-20 border border-red-300 text-pure-white px-3 py-2 rounded-lg mb-4 text-sm">
@@ -204,45 +157,8 @@ const Login = () => {
             </div>
           )}
 
-          {/* Admin Login Form */}
-          {loginType === 'admin' && (
-            <form onSubmit={handleAdminLogin} className="space-y-4">
-              <div>
-                <label className="block text-pure-white text-sm mb-2 font-medium">Email</label>
-                <input
-                  type="email"
-                  value={adminData.email}
-                  onChange={(e) => setAdminData({ ...adminData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
-                  placeholder="admin@gecet.com"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-pure-white text-sm mb-2 font-medium">Password</label>
-                <input
-                  type="password"
-                  value={adminData.password}
-                  onChange={(e) => setAdminData({ ...adminData, password: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-accent-yellow text-heading-dark font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-              >
-                {loading ? 'Logging in...' : 'Login'}
-              </button>
-            </form>
-          )}
-
-          {/* Student Login Form */}
-          {loginType === 'student' && !otpSent && (
+          {/* Phone input (admin or student) */}
+          {!otpSent && (
             <form onSubmit={handleSendOTP} className="space-y-4">
               <div>
                 <label className="block text-pure-white text-sm mb-2 font-medium">Mobile Number</label>
@@ -270,8 +186,8 @@ const Login = () => {
             </form>
           )}
 
-          {/* Student OTP Verification Form */}
-          {loginType === 'student' && otpSent && (
+          {/* OTP Verification Form */}
+          {otpSent && (
             <form onSubmit={handleVerifyOTP} className="space-y-4">
               <div className="mb-4">
                 <p className="text-pure-white text-sm opacity-90">
@@ -307,19 +223,24 @@ const Login = () => {
                 {loading ? 'Verifying...' : 'Verify & Login'}
               </button>
 
-              <div className="text-center space-y-2 mt-4">
+              <div className="text-center mt-4 space-y-2">
                 <button
                   type="button"
                   onClick={handleResendOTP}
                   disabled={loading || timer > 240}
                   className="text-accent-yellow hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Resend OTP
+                  {loading ? 'Resending...' : 'Resend OTP'}
                 </button>
+                {timer > 240 && (
+                  <p className="text-xs text-pure-white opacity-60">
+                    Resend available after 1 minute
+                  </p>
+                )}
                 <div>
                   <button
                     type="button"
-                    onClick={resetStudentForm}
+                    onClick={resetForm}
                     className="text-pure-white hover:underline text-sm opacity-80"
                   >
                     ← Change Number
