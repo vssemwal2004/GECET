@@ -56,7 +56,7 @@ export const studentAPI = {
   sendOTP: (phone) => api.post('/student/send-otp', { phone }),
   verifyOTP: (phone, otp) => api.post('/student/verify-otp', { phone, otp }),
   getProfile: () => api.get('/student/profile'),
-  getAnnouncement: () => api.get('/student/announcement')
+  getAnnouncement: () => api.get('/student/announcement'),
 };
 
 export default api;

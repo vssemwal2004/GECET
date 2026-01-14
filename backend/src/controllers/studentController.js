@@ -267,3 +267,25 @@ export const getStudentAnnouncement = async (req, res) => {
   }
 };
 
+/**
+ * Get All Announcements for Students
+ * GET /api/student/announcements
+ */
+export const getAllStudentAnnouncements = async (req, res) => {
+  try {
+    const announcements = await Announcement.find({ isActive: true })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json({
+      success: true,
+      data: announcements
+    });
+  } catch (error) {
+    console.error('Get announcements error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch announcements'
+    });
+  }
+};
