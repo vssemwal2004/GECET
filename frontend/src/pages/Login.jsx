@@ -119,24 +119,24 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pure-white flex items-center justify-center p-8">
-      <div className="w-full max-w-6xl h-[480px] bg-pure-white shadow-2xl rounded-2xl overflow-hidden flex">
+    <div className="min-h-screen bg-pure-white flex items-center justify-center p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-6xl bg-pure-white shadow-2xl rounded-2xl overflow-hidden flex flex-col lg:flex-row lg:h-[480px]">
         
-        {/* Left Section - Image Only (70%) */}
-        <div className="w-[70%] relative bg-gray-50 flex items-center justify-center">
+        {/* Top/Left Section - Image (50% on mobile, 70% on desktop) */}
+        <div className="w-full lg:w-[70%] h-[300px] lg:h-auto relative bg-gray-50 flex items-center justify-center border-b-4 lg:border-b-0 lg:border-r-4 border-primary-purple">
           <img 
             src="/assects/login-lmgg.webp" 
             alt="GECET Login" 
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain p-4"
           />
         </div>
 
-        {/* Right Section - Login Panel (30%) */}
-        <div className="w-[30%] bg-primary-purple flex flex-col justify-center px-10">
+        {/* Bottom/Right Section - Login Panel (50% on mobile, 30% on desktop) */}
+        <div className="w-full lg:w-[30%] bg-primary-purple flex flex-col justify-center px-6 py-8 sm:px-8 sm:py-10 lg:px-10">
           
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-pure-white mb-2">Welcome</h1>
-            <p className="text-pure-white text-sm opacity-90">Login to your account</p>
+          <div className="mb-6 lg:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-pure-white mb-1 sm:mb-2">Welcome</h1>
+            <p className="text-pure-white text-xs sm:text-sm opacity-90">Login to your account</p>
           </div>
 
           {/* Single login type - phone + OTP */}
@@ -149,19 +149,19 @@ const Login = () => {
 
           {/* Phone input (admin or student) */}
           {!otpSent && (
-            <form onSubmit={handleSendOTP} className="space-y-4">
+            <form onSubmit={handleSendOTP} className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-pure-white text-sm mb-2 font-medium">Mobile Number</label>
+                <label className="block text-pure-white text-xs sm:text-sm mb-1.5 sm:mb-2 font-medium">Mobile Number</label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors text-sm sm:text-base"
                   placeholder="Enter 10 digit number"
                   maxLength={10}
                   required
                 />
-                <p className="text-pure-white text-xs mt-2 opacity-70">
+                <p className="text-pure-white text-xs mt-1.5 sm:mt-2 opacity-70">
                   OTP will be sent to this number
                 </p>
               </div>
@@ -169,7 +169,7 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading || phone.length !== 10}
-                className="w-full bg-accent-yellow text-heading-dark font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                className="w-full bg-accent-yellow text-heading-dark font-semibold py-2.5 sm:py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-4 sm:mt-6 text-sm sm:text-base"
               >
                 {loading ? 'Sending...' : 'Send OTP'}
               </button>
@@ -178,25 +178,25 @@ const Login = () => {
 
           {/* OTP Verification Form */}
           {otpSent && (
-            <form onSubmit={handleVerifyOTP} className="space-y-4">
-              <div className="mb-4">
-                <p className="text-pure-white text-sm opacity-90">
+            <form onSubmit={handleVerifyOTP} className="space-y-3 sm:space-y-4">
+              <div className="mb-3 sm:mb-4">
+                <p className="text-pure-white text-xs sm:text-sm opacity-90">
                   OTP sent to <span className="font-semibold">{phone}</span>
                 </p>
               </div>
 
               <div>
-                <label className="block text-pure-white text-sm mb-2 font-medium">Enter OTP</label>
+                <label className="block text-pure-white text-xs sm:text-sm mb-1.5 sm:mb-2 font-medium">Enter OTP</label>
                 <input
                   type="text"
                   value={otp}
                   onChange={(e) => setOTP(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white text-center text-2xl tracking-widest placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white text-center text-xl sm:text-2xl tracking-widest placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
                   placeholder="000000"
                   maxLength={6}
                   required
                 />
-                <p className="text-pure-white text-xs mt-2 text-center opacity-80">
+                <p className="text-pure-white text-xs mt-1.5 sm:mt-2 text-center opacity-80">
                   {timer > 0 ? (
                     <>Expires in <span className="font-semibold">{formatTime(timer)}</span></>
                   ) : (
@@ -208,17 +208,17 @@ const Login = () => {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6 || timer === 0}
-                className="w-full bg-accent-yellow text-heading-dark font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                className="w-full bg-accent-yellow text-heading-dark font-semibold py-2.5 sm:py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed mt-3 sm:mt-4 text-sm sm:text-base"
               >
                 {loading ? 'Verifying...' : 'Verify & Login'}
               </button>
 
-              <div className="text-center mt-4 space-y-2">
+              <div className="text-center mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
                 <button
                   type="button"
                   onClick={handleResendOTP}
                   disabled={loading || timer > 240}
-                  className="text-accent-yellow hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-accent-yellow hover:underline text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Resending...' : 'Resend OTP'}
                 </button>
@@ -231,7 +231,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="text-pure-white hover:underline text-sm opacity-80"
+                    className="text-pure-white hover:underline text-xs sm:text-sm opacity-80"
                   >
                     ← Change Number
                   </button>
