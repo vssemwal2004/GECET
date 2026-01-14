@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { studentAPI } from '../services/api';
 import { saveAuth } from '../utils/auth';
+import Footer from '../components/Footer';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -119,8 +120,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pure-white flex items-center justify-center p-4 sm:p-6 md:p-8">
-      <div className="w-full max-w-6xl bg-pure-white shadow-2xl rounded-2xl overflow-hidden flex flex-col lg:flex-row lg:h-[480px]">
+    <div className="min-h-screen bg-pure-white flex flex-col">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8">
+        <div className="w-full max-w-6xl bg-pure-white shadow-2xl rounded-2xl overflow-hidden flex flex-col lg:flex-row lg:h-[480px]">
         
         {/* Top/Left Section - Image (50% on mobile, 70% on desktop) */}
         <div className="w-full lg:w-[70%] h-[300px] lg:h-auto relative bg-gray-50 flex items-center justify-center border-b-4 lg:border-b-0 lg:border-r-4 border-primary-purple">
@@ -241,7 +243,10 @@ const Login = () => {
           )}
 
         </div>
+        </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };

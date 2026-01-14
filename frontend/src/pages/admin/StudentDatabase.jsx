@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import AdminNavbar from '../../components/AdminNavbar';
+import Footer from '../../components/Footer';
 
 const StudentDatabase = () => {
   const [students, setStudents] = useState([]);
@@ -35,10 +36,10 @@ const StudentDatabase = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <AdminNavbar />
       
-      <div className="container mx-auto px-4 py-6">
+      <div className="flex-1 container mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-3">
@@ -197,6 +198,8 @@ const StudentDatabase = () => {
           </div>
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 };

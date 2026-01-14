@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { studentAPI } from '../../services/api';
 import { logout, getUser } from '../../utils/auth';
 import StudentNavbar from '../../components/StudentNavbar';
+import Footer from '../../components/Footer';
 import 'react-quill/dist/quill.snow.css';
 
 const StudentDashboard = () => {
@@ -98,10 +99,10 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <StudentNavbar />
 
-      <div className="container mx-auto px-4 py-4 max-w-5xl">
+      <div className="flex-1 container mx-auto px-4 py-4 max-w-5xl">
         {/* Personal Information Section */}
         <div className="bg-pure-white border border-gray-200 rounded-lg p-4 mb-4">
           <h3 className="text-base font-semibold text-heading-dark mb-3">Personal Information</h3>
@@ -216,14 +217,13 @@ const StudentDashboard = () => {
 
         {/* Help Section - One Line */}
         <div className="bg-pure-white border border-gray-200 rounded-lg p-3">
-          <p className="text-xs text-text-muted">
-            <span className="font-semibold text-heading-dark">Need Help?</span> Contact us at{' '}
-            <a href="tel:18008906027" className="text-primary-purple font-semibold hover:underline">
-              Toll-Free: 18008906027
-            </a>
+          <p className="text-xs text-text-muted text-center">
+            <span className="font-semibold text-heading-dark">Having issues?</span> Our support team is here to assist you
           </p>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
