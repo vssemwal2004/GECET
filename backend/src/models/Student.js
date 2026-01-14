@@ -34,6 +34,11 @@ const studentSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  phase: {
+    type: String,
+    required: true,
+    trim: true
+  },
   offerLetterLink: {
     type: String,
     trim: true

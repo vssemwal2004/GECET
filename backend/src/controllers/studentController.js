@@ -1,8 +1,23 @@
 import jwt from 'jsonwebtoken';
+import validator from 'validator';
 import Student from '../models/Student.js';
 import OTP from '../models/OTP.js';
+import FailedOTPAttempt from '../models/FailedOTPAttempt.js';
 import Announcement from '../models/Announcement.js';
 import { generateOTP, sendOTP } from '../services/smsService.js';
+
+// In-memory tracker for OTP request cooldowns
+const otpRequestTracker = new Map();
+
+// Cleanup old entries from tracker every hour
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of otpRequestTracker.entries()) {
+    if (now - value > 3600000) { // Remove entries older than 1 hour
+      otpRequestTracker.delete(key);
+    }
+  }
+}, 3600000);
 
 /**
  * Send OTP to student's mobile
@@ -28,12 +43,15 @@ export const sendStudentOTP = async (req, res) => {
       });
     }
 
+    // Sanitize phone input - trim only (no escape for numeric values)
+    const sanitizedPhone = phone.trim();
+
     const adminPhone = process.env.ADMIN_PHONE;
-    const isAdminPhone = adminPhone && phone === adminPhone;
+    const isAdminPhone = adminPhone && sanitizedPhone === adminPhone;
 
     // If not admin phone, ensure student exists
     if (!isAdminPhone) {
-      const student = await Student.findOne({ phone });
+      const student = await Student.findOne({ phone: sanitizedPhone });
       if (!student) {
         return res.status(404).json({
           success: false,
@@ -42,16 +60,48 @@ export const sendStudentOTP = async (req, res) => {
       }
     }
 
-    // Rate limiting: Check if OTP was sent recently (within last minute)
+    // ENHANCED RATE LIMITING
+    // 1. Check in-memory cooldown (3 minutes between requests)
+    const now = Date.now();
+    const lastRequest = otpRequestTracker.get(sanitizedPhone);
+    const cooldownPeriod = 180000; // 3 minutes in milliseconds
+    
+    if (lastRequest && (now - lastRequest) < cooldownPeriod) {
+      const waitTime = Math.ceil((cooldownPeriod - (now - lastRequest)) / 1000);
+      const minutes = Math.floor(waitTime / 60);
+      const seconds = waitTime % 60;
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${minutes}:${seconds.toString().padStart(2, '0')} minutes before requesting another OTP`
+      });
+    }
+
+    // 2. Check daily limit (maximum 10 OTP requests per day)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const dailyOTPCount = await OTP.countDocuments({
+      phone: sanitizedPhone,
+      createdAt: { $gte: todayStart }
+    });
+    
+    if (dailyOTPCount >= 10) {
+      return res.status(429).json({
+        success: false,
+        message: 'Daily OTP limit (10 requests) reached. Please try again tomorrow.'
+      });
+    }
+
+    // 3. Check if OTP was sent recently (within last 3 minutes) - database check
     const recentOTP = await OTP.findOne({
-      phone,
-      createdAt: { $gte: new Date(Date.now() - 60000) } // Within last 1 minute
+      phone: sanitizedPhone,
+      createdAt: { $gte: new Date(Date.now() - cooldownPeriod) }
     });
 
     if (recentOTP) {
       return res.status(429).json({
         success: false,
-        message: 'Please wait before requesting another OTP'
+        message: 'Please wait 3 minutes before requesting another OTP'
       });
     }
 
@@ -62,13 +112,19 @@ export const sendStudentOTP = async (req, res) => {
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     // Delete any existing OTPs for this phone
-    await OTP.deleteMany({ phone });
+    await OTP.deleteMany({ phone: sanitizedPhone });
+    
+    // Clear any old failed attempts to give fresh 4 attempts with new OTP
+    await FailedOTPAttempt.deleteMany({ phone: sanitizedPhone });
 
     // Save OTP to database
-    await OTP.create({ phone, otp, expiresAt });
+    await OTP.create({ phone: sanitizedPhone, otp, expiresAt });
+    
+    // Update in-memory tracker
+    otpRequestTracker.set(sanitizedPhone, now);
 
     // Send OTP via SMS
-    const smsSent = await sendOTP(phone, otp);
+    const smsSent = await sendOTP(sanitizedPhone, otp);
 
     if (!smsSent) {
       console.error('Failed to send SMS');
@@ -108,13 +164,57 @@ export const verifyStudentOTP = async (req, res) => {
       });
     }
 
+    // Sanitize inputs - trim and validate format only (don't escape numeric values)
+    const sanitizedPhone = phone.trim();
+    const sanitizedOTP = otp.trim();
+    
+    // Validate phone format
+    if (!/^\d{10}$/.test(sanitizedPhone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid phone number format'
+      });
+    }
+    
+    // Validate OTP format
+    if (!/^\d{6}$/.test(sanitizedOTP)) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP must be 6 digits'
+      });
+    }
+
+    // BRUTE FORCE PROTECTION - Check actual failed attempts
+    // Allow 4 wrong attempts per OTP session before blocking
+    const recentFailedAttempts = await FailedOTPAttempt.countDocuments({
+      phone: sanitizedPhone,
+      createdAt: { $gte: new Date(Date.now() - 300000) } // Last 5 minutes (OTP validity period)
+    });
+
+    if (recentFailedAttempts >= 4) {
+      return res.status(429).json({
+        success: false,
+        message: 'Too many incorrect attempts. Please request a new OTP.'
+      });
+    }
+
     // Find OTP record
-    const otpRecord = await OTP.findOne({ phone, otp });
+    const otpRecord = await OTP.findOne({ phone: sanitizedPhone, otp: sanitizedOTP });
 
     if (!otpRecord) {
+      // Log failed attempt
+      const failedAttemptExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+      await FailedOTPAttempt.create({
+        phone: sanitizedPhone,
+        attemptedOTP: sanitizedOTP,
+        ipAddress: req.ip || req.connection?.remoteAddress,
+        expiresAt: failedAttemptExpiry
+      });
+
+      const remainingAttempts = 4 - recentFailedAttempts - 1;
       return res.status(401).json({
         success: false,
-        message: 'Invalid OTP'
+        message: `Invalid OTP. ${remainingAttempts} attempt${remainingAttempts !== 1 ? 's' : ''} remaining.`
       });
     }
 
@@ -129,14 +229,17 @@ export const verifyStudentOTP = async (req, res) => {
 
     // Delete used OTP
     await OTP.deleteOne({ _id: otpRecord._id });
+    
+    // Clear any failed attempts for this phone after successful verification
+    await FailedOTPAttempt.deleteMany({ phone: sanitizedPhone });
 
     const adminPhone = process.env.ADMIN_PHONE;
 
     // If phone matches admin phone, log in as admin
-    if (adminPhone && phone === adminPhone) {
+    if (adminPhone && sanitizedPhone === adminPhone) {
       const token = jwt.sign(
         {
-          phone,
+          phone: sanitizedPhone,
           role: 'admin'
         },
         process.env.JWT_SECRET,
@@ -150,14 +253,14 @@ export const verifyStudentOTP = async (req, res) => {
         user: {
           name: 'Admin',
           email: process.env.ADMIN_EMAIL || '',
-          phone,
+          phone: sanitizedPhone,
           role: 'admin'
         }
       });
     }
 
     // Otherwise, treat as student login
-    const student = await Student.findOne({ phone });
+    const student = await Student.findOne({ phone: sanitizedPhone });
 
     if (!student) {
       return res.status(404).json({
@@ -224,6 +327,7 @@ export const getStudentProfile = async (req, res) => {
         phone: student.phone,
         course: student.course,
         campus: student.campus,
+        phase: student.phase,
         result: student.result,
         offerLetterLink: student.offerLetterLink,
         paymentLink: student.paymentLink

@@ -128,9 +128,13 @@ const StudentDashboard = () => {
               <p className="text-sm font-semibold text-heading-dark">{profile?.campus}</p>
             </div>
             <div>
+              <p className="text-xs text-text-muted mb-0.5">Phase</p>
+              <p className="text-sm font-semibold text-heading-dark">{profile?.phase}</p>
+            </div>
+            <div>
               <p className="text-xs text-text-muted mb-0.5">Result</p>
               <p className="text-sm font-semibold text-heading-dark">
-                {profile?.result ? `${profile.result}%` : 'Pending'}
+                {profile?.result ? `${profile.result}` : 'Pending'}
               </p>
             </div>
           </div>

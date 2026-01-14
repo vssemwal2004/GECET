@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { studentAPI } from '../services/api';
+import { studentAPI, fetchCSRFToken } from '../services/api';
 import { saveAuth } from '../utils/auth';
 import Footer from '../components/Footer';
 
@@ -13,6 +13,11 @@ const Login = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOTP] = useState('');
   const [timer, setTimer] = useState(0);
+
+  // Fetch CSRF token on component mount
+  useEffect(() => {
+    fetchCSRFToken();
+  }, []);
 
   useEffect(() => {
     if (timer > 0) {
@@ -86,7 +91,12 @@ const Login = () => {
         }
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid OTP. Please try again.');
+      // Show error but keep OTP input so user can see what they entered
+      const errorMessage = err.response?.data?.message || 'Invalid OTP. Please try again.';
+      setError(errorMessage);
+      
+      // Don't clear OTP field - let user see their entry and modify it
+      // Only clear if they want to start fresh
     } finally {
       setLoading(false);
     }
@@ -189,15 +199,31 @@ const Login = () => {
 
               <div>
                 <label className="block text-pure-white text-xs sm:text-sm mb-1.5 sm:mb-2 font-medium">Enter OTP</label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOTP(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white text-center text-xl sm:text-2xl tracking-widest placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
-                  placeholder="000000"
-                  maxLength={6}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOTP(e.target.value.replace(/\D/g, ''))}
+                    className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg bg-white bg-opacity-10 border border-white border-opacity-20 text-pure-white text-center text-xl sm:text-2xl tracking-widest placeholder-white placeholder-opacity-50 focus:outline-none focus:border-accent-yellow focus:border-opacity-60 transition-colors"
+                    placeholder="000000"
+                    maxLength={6}
+                    required
+                    autoFocus
+                  />
+                  {otp.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOTP('');
+                        setError('');
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-pure-white opacity-60 hover:opacity-100 text-sm"
+                      title="Clear OTP"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 <p className="text-pure-white text-xs mt-1.5 sm:mt-2 text-center opacity-80">
                   {timer > 0 ? (
                     <>Expires in <span className="font-semibold">{formatTime(timer)}</span></>

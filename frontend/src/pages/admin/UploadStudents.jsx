@@ -62,13 +62,13 @@ const UploadStudents = () => {
   };
 
   const downloadTemplate = () => {
-    const headers = ['name', 'email', 'phone', 'course', 'campus', 'offerLetterLink', 'result', 'paymentLink'];
+    const headers = ['name', 'email', 'phone', 'course', 'campus', 'Phase', 'offerLetterLink', 'result', 'paymentLink'];
     const sampleData = [
       'John Doe',
       'john@example.com',
       '9876543210',
       'Computer Science',
-      'Main Campus',
+      'Main Campus', 'Phase 1',
       'https://example.com/offer.pdf',
       '85',
       'https://example.com/payment'

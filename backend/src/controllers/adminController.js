@@ -90,9 +90,15 @@ export const uploadCSV = async (req, res) => {
       .on('data', (row) => {
         lineNumber++;
         
-        // Validate required fields
-        const requiredFields = ['name', 'email', 'phone', 'course', 'campus'];
-        const missingFields = requiredFields.filter(field => !row[field]);
+        // Normalize row keys to lowercase for case-insensitive matching
+        const normalizedRow = {};
+        Object.keys(row).forEach(key => {
+          normalizedRow[key.toLowerCase().trim()] = row[key];
+        });
+        
+        // Validate required fields (case-insensitive)
+        const requiredFields = ['name', 'email', 'phone', 'course', 'campus', 'phase'];
+        const missingFields = requiredFields.filter(field => !normalizedRow[field]);
         
         if (missingFields.length > 0) {
           errors.push({
@@ -103,7 +109,7 @@ export const uploadCSV = async (req, res) => {
         }
 
         // Validate phone number
-        if (!/^\d{10}$/.test(row.phone.trim())) {
+        if (!/^\d{10}$/.test(normalizedRow.phone.trim())) {
           errors.push({
             line: lineNumber,
             error: 'Phone number must be exactly 10 digits'
@@ -112,14 +118,15 @@ export const uploadCSV = async (req, res) => {
         }
 
         students.push({
-          name: row.name.trim(),
-          email: row.email.trim().toLowerCase(),
-          phone: row.phone.trim(),
-          course: row.course.trim(),
-          campus: row.campus.trim(),
-          offerLetterLink: row.offerLetterLink?.trim() || '',
-          result: row.result?.trim() || '',
-          paymentLink: row.paymentLink?.trim() || ''
+          name: normalizedRow.name.trim(),
+          email: normalizedRow.email.trim().toLowerCase(),
+          phone: normalizedRow.phone.trim(),
+          course: normalizedRow.course.trim(),
+          campus: normalizedRow.campus.trim(),
+          phase: normalizedRow.phase.trim(),
+          offerLetterLink: normalizedRow.offerletterlink?.trim() || '',
+          result: normalizedRow.result?.trim() || '',
+          paymentLink: normalizedRow.paymentlink?.trim() || ''
         });
       })
       .on('end', async () => {
