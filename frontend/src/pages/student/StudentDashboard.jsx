@@ -101,6 +101,45 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <StudentNavbar />
+       {/* Announcements Section - Full Width Separate Line */}
+       <div className="flex-1 container mx-auto px-4 py-4 max-w-5xl">
+        <div className="w-full bg-gradient-to-r from-accent-yellow/10 to-primary-purple/10 border-2 border-primary-purple rounded-lg p-4 mb-4 shadow-sm">
+          <div className="flex items-center mb-4">
+            <div className="bg-accent-yellow bg-opacity-30 p-2.5 rounded-lg mr-3">
+              <svg className="w-6 h-6 text-primary-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-primary-purple">📢 Announcements</h3>
+          </div>
+          <div className="space-y-3">
+            {announcements.length > 0 ? (
+              announcements.map((announcement, index) => (
+                <div key={announcement._id || index} className="bg-pure-white border-l-4 border-primary-purple pl-4 pr-3 py-3 rounded shadow-sm">
+                  {announcement.title && (
+                    <h4 className="text-sm font-bold text-heading-dark mb-1">{announcement.title}</h4>
+                  )}
+                  <div 
+                    className="text-xs text-text-muted leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: announcement.content }}
+                  />
+                  <p className="text-xs text-primary-purple font-medium mt-2">
+                    📅 {new Date(announcement.createdAt).toLocaleDateString('en-IN', { 
+                      day: 'numeric', 
+                      month: 'short', 
+                      year: 'numeric' 
+                    })}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="bg-pure-white border border-gray-200 pl-4 pr-3 py-4 rounded text-center">
+                <p className="text-sm text-text-muted">No announcements at this time</p>
+              </div>
+            )}
+          </div>
+        </div>
+        </div>
 
       <div className="flex-1 container mx-auto px-4 py-4 max-w-5xl">
         {/* Personal Information Section */}
@@ -130,6 +169,14 @@ const StudentDashboard = () => {
             <div>
               <p className="text-xs text-text-muted mb-0.5">Phase</p>
               <p className="text-sm font-semibold text-heading-dark">{profile?.phase}</p>
+            </div>
+            <div>
+              <p className="text-xs text-text-muted mb-0.5">University</p>
+              <p className="text-sm font-semibold text-heading-dark">{profile?.university}</p>
+            </div>
+            <div>
+              <p className="text-xs text-text-muted mb-0.5">Department</p>
+              <p className="text-sm font-semibold text-heading-dark">{profile?.department}</p>
             </div>
             <div>
               <p className="text-xs text-text-muted mb-0.5">Result</p>
@@ -181,43 +228,7 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* Announcements Section - Full Width Separate Line */}
-        <div className="w-full bg-gradient-to-r from-accent-yellow/10 to-primary-purple/10 border-2 border-primary-purple rounded-lg p-4 mb-4 shadow-sm">
-          <div className="flex items-center mb-4">
-            <div className="bg-accent-yellow bg-opacity-30 p-2.5 rounded-lg mr-3">
-              <svg className="w-6 h-6 text-primary-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold text-primary-purple">📢 Announcements</h3>
-          </div>
-          <div className="space-y-3">
-            {announcements.length > 0 ? (
-              announcements.map((announcement, index) => (
-                <div key={announcement._id || index} className="bg-pure-white border-l-4 border-primary-purple pl-4 pr-3 py-3 rounded shadow-sm">
-                  {announcement.title && (
-                    <h4 className="text-sm font-bold text-heading-dark mb-1">{announcement.title}</h4>
-                  )}
-                  <div 
-                    className="text-xs text-text-muted leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: announcement.content }}
-                  />
-                  <p className="text-xs text-primary-purple font-medium mt-2">
-                    📅 {new Date(announcement.createdAt).toLocaleDateString('en-IN', { 
-                      day: 'numeric', 
-                      month: 'short', 
-                      year: 'numeric' 
-                    })}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div className="bg-pure-white border border-gray-200 pl-4 pr-3 py-4 rounded text-center">
-                <p className="text-sm text-text-muted">No announcements at this time</p>
-              </div>
-            )}
-          </div>
-        </div>
+       
 
         {/* Help Section - One Line */}
         <div className="bg-pure-white border border-gray-200 rounded-lg p-3">

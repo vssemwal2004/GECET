@@ -62,13 +62,15 @@ const UploadStudents = () => {
   };
 
   const downloadTemplate = () => {
-    const headers = ['name', 'email', 'phone', 'course', 'campus', 'Phase', 'offerLetterLink', 'result', 'paymentLink'];
+    const headers = ['name', 'email', 'phone', 'course', 'campus', 'Phase', 'university', 'department', 'offerLetterLink', 'result', 'paymentLink'];
     const sampleData = [
       'John Doe',
       'john@example.com',
       '9876543210',
       'Computer Science',
       'Main Campus', 'Phase 1',
+      'XYZ University',
+      'Engineering',
       'https://example.com/offer.pdf',
       '85',
       'https://example.com/payment'
@@ -279,6 +281,18 @@ const UploadStudents = () => {
                     <div className="flex items-center">
                       <span className="w-1.5 h-1.5 bg-primary-purple rounded-full mr-2"></span>
                       <span>campus</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-primary-purple rounded-full mr-2"></span>
+                      <span>phase</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-primary-purple rounded-full mr-2"></span>
+                      <span>university</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-primary-purple rounded-full mr-2"></span>
+                      <span>department</span>
                     </div>
                     <div className="flex items-center">
                       <span className="w-1.5 h-1.5 bg-primary-purple rounded-full mr-2"></span>

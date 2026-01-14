@@ -39,6 +39,16 @@ const studentSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  university: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  department: {
+    type: String,
+    required: true,
+    trim: true
+  },
   offerLetterLink: {
     type: String,
     trim: true

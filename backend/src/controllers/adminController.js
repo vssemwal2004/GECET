@@ -97,7 +97,7 @@ export const uploadCSV = async (req, res) => {
         });
         
         // Validate required fields (case-insensitive)
-        const requiredFields = ['name', 'email', 'phone', 'course', 'campus', 'phase'];
+        const requiredFields = ['name', 'email', 'phone', 'course', 'campus', 'phase', 'university', 'department'];
         const missingFields = requiredFields.filter(field => !normalizedRow[field]);
         
         if (missingFields.length > 0) {
@@ -124,6 +124,8 @@ export const uploadCSV = async (req, res) => {
           course: normalizedRow.course.trim(),
           campus: normalizedRow.campus.trim(),
           phase: normalizedRow.phase.trim(),
+          university: normalizedRow.university.trim(),
+          department: normalizedRow.department.trim(),
           offerLetterLink: normalizedRow.offerletterlink?.trim() || '',
           result: normalizedRow.result?.trim() || '',
           paymentLink: normalizedRow.paymentlink?.trim() || ''

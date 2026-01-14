@@ -33,7 +33,9 @@ const StudentDatabase = () => {
     student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.phone?.includes(searchTerm) ||
     student.course?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.phase?.toLowerCase().includes(searchTerm.toLowerCase())
+    student.phase?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.university?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.department?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -122,6 +124,12 @@ const StudentDatabase = () => {
                       Phase
                     </th>
                     <th className="px-3 py-2.5 text-left text-xs font-semibold text-pure-white uppercase tracking-wide">
+                      University
+                    </th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-pure-white uppercase tracking-wide">
+                      Department
+                    </th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-pure-white uppercase tracking-wide">
                       Result
                     </th>
                     <th className="px-3 py-2.5 text-left text-xs font-semibold text-pure-white uppercase tracking-wide">
@@ -154,6 +162,12 @@ const StudentDatabase = () => {
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
                         <div className="text-xs text-heading-dark">{student.phase}</div>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="text-xs text-gray-600">{student.university}</div>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="text-xs text-gray-600">{student.department}</div>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
                         <span className={`px-2 py-0.5 inline-flex text-xs font-medium rounded ${

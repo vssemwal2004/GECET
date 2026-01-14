@@ -328,6 +328,8 @@ export const getStudentProfile = async (req, res) => {
         course: student.course,
         campus: student.campus,
         phase: student.phase,
+        university: student.university,
+        department: student.department,
         result: student.result,
         offerLetterLink: student.offerLetterLink,
         paymentLink: student.paymentLink
