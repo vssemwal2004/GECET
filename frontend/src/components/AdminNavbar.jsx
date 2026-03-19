@@ -26,6 +26,9 @@ const AdminNavbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+  const isEmployee = user?.role === 'employee';
+  const signedInLabel = user?.email || user?.phone || '';
+  const avatarLetter = (user?.email?.charAt(0) || (isEmployee ? 'E' : 'A')).toUpperCase();
 
   return (
     <nav className="bg-primary-purple shadow-lg">
@@ -37,16 +40,30 @@ const AdminNavbar = () => {
             
             {/* Navigation Links */}
             <div className="flex space-x-4">
-              <button
-                onClick={() => navigate('/admin/upload')}
-                className={`px-5 py-2 rounded-lg font-medium transition-all ${
-                  isActive('/admin/upload')
-                    ? 'bg-accent-yellow text-heading-dark'
-                    : 'text-pure-white hover:bg-white hover:bg-opacity-10'
-                }`}
-              >
-                Upload
-              </button>
+              {!isEmployee && (
+                <button
+                  onClick={() => navigate('/admin/upload')}
+                  className={`px-5 py-2 rounded-lg font-medium transition-all ${
+                    isActive('/admin/upload')
+                      ? 'bg-accent-yellow text-heading-dark'
+                      : 'text-pure-white hover:bg-white hover:bg-opacity-10'
+                  }`}
+                >
+                  Upload
+                </button>
+              )}
+              {!isEmployee && (
+                <button
+                  onClick={() => navigate('/admin/employees')}
+                  className={`px-5 py-2 rounded-lg font-medium transition-all ${
+                    isActive('/admin/employees')
+                      ? 'bg-accent-yellow text-heading-dark'
+                      : 'text-pure-white hover:bg-white hover:bg-opacity-10'
+                  }`}
+                >
+                  Employees
+                </button>
+              )}
               <button
                 onClick={() => navigate('/admin/database')}
                 className={`px-5 py-2 rounded-lg font-medium transition-all ${
@@ -68,7 +85,7 @@ const AdminNavbar = () => {
             >
               <div className="w-9 h-9 bg-accent-yellow rounded-full flex items-center justify-center">
                 <span className="text-heading-dark font-bold text-lg">
-                  {user?.email?.charAt(0).toUpperCase() || 'A'}
+                  {avatarLetter}
                 </span>
               </div>
               <svg
@@ -89,7 +106,7 @@ const AdminNavbar = () => {
                 <div className="px-4 py-3 border-b border-gray-200">
                   <p className="text-sm text-text-muted">Signed in as</p>
                   <p className="text-sm font-semibold text-heading-dark truncate">
-                    {user?.email}
+                    {signedInLabel}
                   </p>
                 </div>
                 <button

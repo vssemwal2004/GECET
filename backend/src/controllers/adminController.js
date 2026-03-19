@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import Student from '../models/Student.js';
 import Announcement from '../models/Announcement.js';
+import Employee from '../models/Employee.js';
 import fs from 'fs';
 import csvParser from 'csv-parser';
 
@@ -229,6 +230,165 @@ export const getAllStudents = async (req, res) => {
   } catch (error) {
     console.error('Get students error:', error);
     res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+/**
+ * Add an employee phone number (admin only)
+ * POST /api/admin/employees
+ */
+export const addEmployee = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+
+    const sanitizedPhone = String(phone).trim();
+    if (!/^\d{10}$/.test(sanitizedPhone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number must be exactly 10 digits'
+      });
+    }
+
+    const existing = await Employee.findOne({ phone: sanitizedPhone });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: 'Employee already exists with this phone number'
+      });
+    }
+
+    const employee = await Employee.create({
+      phone: sanitizedPhone,
+      createdBy: req.user?.email || req.user?.phone || 'admin'
+    });
+
+    return res.json({
+      success: true,
+      message: 'Employee added successfully',
+      data: {
+        id: employee._id,
+        phone: employee.phone
+      }
+  } catch (error) {
+    console.error('Add employee error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+/**
+ * List all employees (admin only)
+ * GET /api/admin/employees
+ */
+export const getEmployees = async (req, res) => {
+  try {
+    const employees = await Employee.find().sort({ createdAt: -1 });
+    return res.json({
+      success: true,
+      count: employees.length,
+      data: employees
+    });
+  } catch (error) {
+    console.error('Get employees error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+/**
+ * Update employee details (admin only)
+ * PUT /api/admin/employees/:id
+ */
+export const updateEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+
+    const sanitizedPhone = String(phone).trim();
+    if (!/^\d{10}$/.test(sanitizedPhone)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number must be exactly 10 digits'
+      });
+    }
+
+    const employee = await Employee.findById(id);
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    const existing = await Employee.findOne({ phone: sanitizedPhone, _id: { $ne: id } });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: 'Another employee already exists with this phone number'
+      });
+    }
+
+    employee.phone = sanitizedPhone;
+    await employee.save();
+
+    return res.json({
+      success: true,
+      message: 'Employee updated successfully',
+      data: employee
+    });
+  } catch (error) {
+    console.error('Update employee error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+/**
+ * Delete an employee (admin only)
+ * DELETE /api/admin/employees/:id
+ */
+export const deleteEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Employee.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Employee deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete employee error:', error);
+    return res.status(500).json({
       success: false,
       message: 'Internal server error'
     });

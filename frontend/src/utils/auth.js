@@ -32,6 +32,18 @@ export const isStudent = () => {
   return user?.role === 'student';
 };
 
+// Check if user is employee
+export const isEmployee = () => {
+  const user = getUser();
+  return user?.role === 'employee';
+};
+
+// Check if user is admin or employee
+export const isAdminOrEmployee = () => {
+  const user = getUser();
+  return user?.role === 'admin' || user?.role === 'employee';
+};
+
 // Logout user
 export const logout = () => {
   localStorage.removeItem('token');

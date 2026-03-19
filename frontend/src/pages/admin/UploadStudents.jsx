@@ -119,6 +119,7 @@ const UploadStudents = () => {
     }
   };
 
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <AdminNavbar />
@@ -318,6 +319,7 @@ const UploadStudents = () => {
                   </button>
                 </div>
               </div>
+
             </div>
 
             {/* RIGHT SIDE - Announcement Section */}

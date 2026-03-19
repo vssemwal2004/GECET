@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { isAuthenticated, isAdmin, isStudent } from '../utils/auth';
+import { isAuthenticated, isAdmin, isStudent, isAdminOrEmployee } from '../utils/auth';
 
 // Protected route for admin only
 export const AdminRoute = ({ children }) => {
@@ -24,5 +24,18 @@ export const StudentRoute = ({ children }) => {
     return <Navigate to="/" replace />;
   }
   
+  return children;
+};
+
+// Protected route for admin OR employee
+export const AdminOrEmployeeRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdminOrEmployee()) {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 };

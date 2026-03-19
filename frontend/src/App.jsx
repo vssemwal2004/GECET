@@ -1,11 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AdminRoute, StudentRoute } from './components/ProtectedRoute';
+import { AdminRoute, StudentRoute, AdminOrEmployeeRoute } from './components/ProtectedRoute';
 
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
 import UploadStudents from './pages/admin/UploadStudents';
 import StudentDatabase from './pages/admin/StudentDatabase';
+import Employees from './pages/admin/Employees';
 import StudentDashboard from './pages/student/StudentDashboard';
 
 function App() {
@@ -38,8 +39,17 @@ function App() {
         <Route
           path="/admin/database"
           element={
-            <AdminRoute>
+            <AdminOrEmployeeRoute>
               <StudentDatabase />
+            </AdminOrEmployeeRoute>
+          }
+        />
+
+        <Route
+          path="/admin/employees"
+          element={
+            <AdminRoute>
+              <Employees />
             </AdminRoute>
           }
         />

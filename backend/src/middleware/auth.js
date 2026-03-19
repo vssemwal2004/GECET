@@ -39,6 +39,23 @@ export const verifyAdmin = (req, res, next) => {
   }
 };
 
+export const verifyAdminOrEmployee = (req, res, next) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'employee') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin or employee only.'
+      });
+    }
+    next();
+  } catch (error) {
+    return res.status(403).json({
+      success: false,
+      message: 'Access denied'
+    });
+  }
+};
+
 export const verifyStudent = (req, res, next) => {
   try {
     if (req.user.role !== 'student') {
@@ -55,3 +72,4 @@ export const verifyStudent = (req, res, next) => {
     });
   }
 };
+

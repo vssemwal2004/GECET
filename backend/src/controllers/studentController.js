@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
 import Student from '../models/Student.js';
+import Employee from '../models/Employee.js';
 import OTP from '../models/OTP.js';
 import FailedOTPAttempt from '../models/FailedOTPAttempt.js';
 import Announcement from '../models/Announcement.js';
@@ -49,13 +50,16 @@ export const sendStudentOTP = async (req, res) => {
     const adminPhone = process.env.ADMIN_PHONE;
     const isAdminPhone = adminPhone && sanitizedPhone === adminPhone;
 
-    // If not admin phone, ensure student exists
+    // If not admin phone, ensure student OR employee exists
     if (!isAdminPhone) {
-      const student = await Student.findOne({ phone: sanitizedPhone });
-      if (!student) {
+      const [student, employee] = await Promise.all([
+        Student.findOne({ phone: sanitizedPhone }).select('_id'),
+        Employee.findOne({ phone: sanitizedPhone }).select('_id')
+      ]);
+      if (!student && !employee) {
         return res.status(404).json({
           success: false,
-          message: 'Student not found with this phone number'
+          message: 'User not found with this phone number'
         });
       }
     }
@@ -255,6 +259,32 @@ export const verifyStudentOTP = async (req, res) => {
           email: process.env.ADMIN_EMAIL || '',
           phone: sanitizedPhone,
           role: 'admin'
+        }
+      });
+    }
+
+    // If phone matches an employee phone, log in as employee
+    const employee = await Employee.findOne({ phone: sanitizedPhone });
+    if (employee) {
+      const token = jwt.sign(
+        {
+          employeeId: employee._id,
+          phone: sanitizedPhone,
+          role: 'employee'
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      );
+
+      return res.json({
+        success: true,
+        message: 'Employee login successful',
+        token,
+        user: {
+          id: employee._id,
+          name: 'Employee',
+          phone: sanitizedPhone,
+          role: 'employee'
         }
       });
     }

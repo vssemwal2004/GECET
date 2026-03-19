@@ -111,7 +111,11 @@ uploadCSV: (formData) => {
 },
   getStudents: () => api.get('/admin/students'),
   getAnnouncement: () => api.get('/admin/announcement'),
-  updateAnnouncement: (content) => api.put('/admin/announcement', { content })
+  updateAnnouncement: (content) => api.put('/admin/announcement', { content }),
+  addEmployee: (phone) => api.post('/admin/employees', { phone }),
+  getEmployees: () => api.get('/admin/employees'),
+  updateEmployee: (id, phone) => api.put(`/admin/employees/${id}`, { phone }),
+  deleteEmployee: (id) => api.delete(`/admin/employees/${id}`)
 };
 
 // Student APIs
