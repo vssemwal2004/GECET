@@ -279,6 +279,7 @@ export const addEmployee = async (req, res) => {
         id: employee._id,
         phone: employee.phone
       }
+    });
   } catch (error) {
     console.error('Add employee error:', error);
     return res.status(500).json({
