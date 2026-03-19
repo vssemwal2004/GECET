@@ -260,7 +260,7 @@ const AdminDashboard = () => {
                       <td className="px-4 py-3 text-sm text-gray-900">{student.phone}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{student.course}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{student.campus}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{student.result ? `${student.result}%` : '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{student.result || '-'}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -9,6 +9,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import csrf from 'csurf';
+import otpRoutes from './routes/otpRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 
@@ -18,6 +19,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '..', '.env'), override: true });
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 // Security middleware - Helmet for security headers
@@ -46,13 +48,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // CSRF protection middleware
+//const csrfProtection = csrf({ 
+ // cookie: {
+   // httpOnly: true,
+   // secure: process.env.NODE_ENV === 'production',
+   // sameSite: 'Strict'
+ // }
+//});
 const csrfProtection = csrf({ 
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: 'lax'
   }
 });
+
+
 
 // Global rate limiter - prevents API abuse
 const globalLimiter = rateLimit({
@@ -115,7 +126,7 @@ app.get('/', (req, res) => {
 });
 
 // CSRF token endpoint
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
+app.get('/api/csrf-token', (req, res) => {
   res.json({ 
     success: true,
     csrfToken: req.csrfToken() 
@@ -123,12 +134,24 @@ app.get('/api/csrf-token', csrfProtection, (req, res) => {
 });
 
 // Apply strict OTP rate limiting to student OTP routes
-app.use('/api/student/send-otp', otpLimiter);
-app.use('/api/student/verify-otp', otpLimiter);
+//app.use('/api/student/send-otp', otpLimiter);
+//app.use('/api/student/verify-otp', otpLimiter);
+
+// ---------------- OTP ROUTES (NO CSRF) ----------------
+app.use('/api/student', otpLimiter, otpRoutes);
 
 // Apply CSRF protection to state-changing routes
-app.use('/api/admin', csrfProtection, adminRoutes);
-app.use('/api/student', csrfProtection, studentRoutes);
+//app.use('/api/admin', csrfProtection, adminRoutes);
+//app.use('/api/student', csrfProtection, studentRoutes);
+
+app.use('/api/admin', adminRoutes);
+app.use('/api/student', studentRoutes);
+
+
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 
 app.use((req, res) => {
   res.status(404).json({
@@ -155,7 +178,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+//app.listen(PORT, () => {
+  //console.log(`🚀 Server is running on port ${PORT}`);
+  //console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
+

@@ -26,7 +26,7 @@ const StudentNavbar = () => {
           {/* Center - Welcome Message */}
           <div className="flex-1 text-center px-4 hidden md:block">
             <p className="text-base sm:text-lg font-semibold text-heading-dark">
-              Welcome, <span className="text-primary-purple">{user?.name || 'Student'}</span>
+              Welcome
             </p>
           </div>
 

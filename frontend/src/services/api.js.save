@@ -92,23 +92,12 @@ api.interceptors.response.use(
 // Admin APIs
 export const adminAPI = {
   login: (credentials) => api.post('/admin/login', credentials),
-  //uploadCSV: (formData) => api.post('/admin/upload-csv', formData, {
-  //  headers: {
-    //  'Content-Type': 'multipart/form-data'
-  //  }
-//  })
-uploadCSV: (formData) => {
-  // IMPORTANT: attach CSRF token for multipart request
-  if (csrfToken) {
-    formData.append('_csrf', csrfToken);
-  }
-
-  return api.post('/admin/upload-csv', formData, {
+  uploadCSV: (formData) => api.post(/admin/upload-csv', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
-  });
-},
+  }),
+
   getStudents: () => api.get('/admin/students'),
   getAnnouncement: () => api.get('/admin/announcement'),
   updateAnnouncement: (content) => api.put('/admin/announcement', { content })

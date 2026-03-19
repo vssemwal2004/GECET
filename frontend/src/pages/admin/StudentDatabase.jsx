@@ -170,14 +170,8 @@ const StudentDatabase = () => {
                         <div className="text-xs text-gray-600">{student.department}</div>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <span className={`px-2 py-0.5 inline-flex text-xs font-medium rounded ${
-                          student.result >= 75 
-                            ? 'bg-green-50 text-green-700' 
-                            : student.result >= 50 
-                            ? 'bg-yellow-50 text-yellow-700' 
-                            : 'bg-red-50 text-red-700'
-                        }`}>
-                          {student.result ? `${student.result}%` : 'N/A'}
+                         <span className="text-sm text-gray-900">
+                          {student.result || 'N/A'}
                         </span>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs">

@@ -54,7 +54,7 @@ const studentSchema = new mongoose.Schema({
     trim: true
   },
   result: {
-    type: Number
+    type: String
   },
   paymentLink: {
     type: String,
