@@ -61,6 +61,10 @@ const StudentDashboard = () => {
     }
   };
 
+  const handleUFMDetails = () => {
+    navigate('/student/ufm-details');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -179,6 +183,14 @@ const StudentDashboard = () => {
               <p className="text-sm font-semibold text-heading-dark">
                 {profile?.result || 'Pending'}
               </p>
+              {profile?.isUFM && (
+                <button
+                  onClick={handleUFMDetails}
+                  className="mt-2 text-xs font-semibold text-primary-purple hover:underline"
+                >
+                  For more details click here
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { adminLogin, uploadCSV, getAllStudents, getAnnouncement, updateAnnouncement, addEmployee, getEmployees, updateEmployee, deleteEmployee } from '../controllers/adminController.js';
+import { adminLogin, uploadCSV, uploadUFMCsv, getAllStudents, getAnnouncement, updateAnnouncement, getUFMContent, updateUFMContent, addEmployee, getEmployees, updateEmployee, deleteEmployee } from '../controllers/adminController.js';
 import { verifyToken, verifyAdmin, verifyAdminOrEmployee } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -22,9 +22,12 @@ router.post('/login', adminLogin);
 
 // Protected admin routes
 router.post('/upload-csv', verifyToken, verifyAdmin, upload.single('csvFile'), uploadCSV);
+router.post('/upload-ufm-csv', verifyToken, verifyAdmin, upload.single('csvFile'), uploadUFMCsv);
 router.get('/students', verifyToken, verifyAdminOrEmployee, getAllStudents);
 router.get('/announcement', verifyToken, verifyAdmin, getAnnouncement);
 router.put('/announcement', verifyToken, verifyAdmin, updateAnnouncement);
+router.get('/ufm-content', verifyToken, verifyAdmin, getUFMContent);
+router.put('/ufm-content', verifyToken, verifyAdmin, updateUFMContent);
 router.post('/employees', verifyToken, verifyAdmin, addEmployee);
 router.get('/employees', verifyToken, verifyAdmin, getEmployees);
 router.put('/employees/:id', verifyToken, verifyAdmin, updateEmployee);

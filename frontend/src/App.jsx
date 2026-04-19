@@ -5,9 +5,11 @@ import { AdminRoute, StudentRoute, AdminOrEmployeeRoute } from './components/Pro
 import Home from './pages/Home';
 import Login from './pages/Login';
 import UploadStudents from './pages/admin/UploadStudents';
+import UFM from './pages/admin/UFM';
 import StudentDatabase from './pages/admin/StudentDatabase';
 import Employees from './pages/admin/Employees';
 import StudentDashboard from './pages/student/StudentDashboard';
+import UFMDetails from './pages/student/UFMDetails';
 
 function App() {
   return (
@@ -37,6 +39,14 @@ function App() {
           }
         />
         <Route
+          path="/admin/ufm"
+          element={
+            <AdminRoute>
+              <UFM />
+            </AdminRoute>
+          }
+        />
+        <Route
           path="/admin/database"
           element={
             <AdminOrEmployeeRoute>
@@ -60,6 +70,14 @@ function App() {
           element={
             <StudentRoute>
               <StudentDashboard />
+            </StudentRoute>
+          }
+        />
+        <Route
+          path="/student/ufm-details"
+          element={
+            <StudentRoute>
+              <UFMDetails />
             </StudentRoute>
           }
         />

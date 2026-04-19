@@ -5,6 +5,7 @@ import Employee from '../models/Employee.js';
 import OTP from '../models/OTP.js';
 import FailedOTPAttempt from '../models/FailedOTPAttempt.js';
 import Announcement from '../models/Announcement.js';
+import UFMContent from '../models/UFMContent.js';
 import { generateOTP, sendOTP } from '../services/smsService.js';
 
 // In-memory tracker for OTP request cooldowns
@@ -126,8 +127,7 @@ export const sendStudentOTP = async (req, res) => {
     
     // Update in-memory tracker
     otpRequestTracker.set(sanitizedPhone, now);
-
-    // Send OTP via SMS
+    // Send OTP via SMS/
     const smsSent = await sendOTP(sanitizedPhone, otp);
 
     if (!smsSent) {
@@ -362,7 +362,9 @@ export const getStudentProfile = async (req, res) => {
         department: student.department,
         result: student.result,
         offerLetterLink: student.offerLetterLink,
-        paymentLink: student.paymentLink
+        paymentLink: student.paymentLink,
+        isUFM: student.isUFM,
+        uploadSource: student.uploadSource
       }
     });
 
@@ -399,6 +401,51 @@ export const getStudentAnnouncement = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch announcement'
+    });
+  }
+};
+
+/**
+ * Get UFM details for eligible students
+ * GET /api/student/ufm-content
+ */
+export const getStudentUFMContent = async (req, res) => {
+  try {
+    const studentId = req.user.studentId;
+    const student = await Student.findById(studentId).select('isUFM');
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    if (!student.isUFM) {
+      return res.status(403).json({
+        success: false,
+        message: 'UFM details are not available for this student'
+      });
+    }
+
+    let ufmContent = await UFMContent.findOne().sort({ updatedAt: -1 });
+
+    if (!ufmContent) {
+      ufmContent = {
+        content: '<p>No UFM details have been published yet.</p>',
+        updatedAt: new Date()
+      };
+    }
+
+    return res.json({
+      success: true,
+      ufmContent
+    });
+  } catch (error) {
+    console.error('Get student UFM content error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch UFM details'
     });
   }
 };

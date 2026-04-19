@@ -3,8 +3,143 @@ import bcrypt from 'bcryptjs';
 import Student from '../models/Student.js';
 import Announcement from '../models/Announcement.js';
 import Employee from '../models/Employee.js';
+import UFMContent from '../models/UFMContent.js';
 import fs from 'fs';
 import csvParser from 'csv-parser';
+
+const processStudentCSVUpload = (req, res, options = {}) => {
+  const { isUFM = false } = options;
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      message: 'No CSV file uploaded'
+    });
+  }
+
+  if (req.file.mimetype !== 'text/csv' && !req.file.originalname.endsWith('.csv')) {
+    fs.unlinkSync(req.file.path);
+    return res.status(400).json({
+      success: false,
+      message: 'Only CSV files are allowed'
+    });
+  }
+
+  const students = [];
+  const errors = [];
+  let lineNumber = 1;
+
+  fs.createReadStream(req.file.path)
+    .pipe(csvParser())
+    .on('data', (row) => {
+      lineNumber++;
+
+      const normalizedRow = {};
+      Object.keys(row).forEach(key => {
+        normalizedRow[key.toLowerCase().trim()] = row[key];
+      });
+
+      const requiredFields = ['name', 'email', 'phone', 'course', 'campus', 'phase', 'university', 'department'];
+      const missingFields = requiredFields.filter(field => !normalizedRow[field]);
+
+      if (missingFields.length > 0) {
+        errors.push({
+          line: lineNumber,
+          error: `Missing required fields: ${missingFields.join(', ')}`
+        });
+        return;
+      }
+
+      if (!/^\d{10}$/.test(normalizedRow.phone.trim())) {
+        errors.push({
+          line: lineNumber,
+          error: 'Phone number must be exactly 10 digits'
+        });
+        return;
+      }
+
+      students.push({
+        name: normalizedRow.name.trim(),
+        email: normalizedRow.email.trim().toLowerCase(),
+        phone: normalizedRow.phone.trim(),
+        course: normalizedRow.course.trim(),
+        campus: normalizedRow.campus.trim(),
+        phase: normalizedRow.phase.trim(),
+        university: normalizedRow.university.trim(),
+        department: normalizedRow.department.trim(),
+        offerLetterLink: normalizedRow.offerletterlink?.trim() || '',
+        result: normalizedRow.result?.trim() || '',
+        paymentLink: normalizedRow.paymentlink?.trim() || '',
+        isUFM,
+        uploadSource: isUFM ? 'ufm' : 'regular'
+      });
+    })
+    .on('end', async () => {
+      try {
+        fs.unlinkSync(req.file.path);
+
+        if (students.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'No valid student data found in CSV',
+            errors
+          });
+        }
+
+        const savedStudents = [];
+        const updateErrors = [];
+
+        for (const studentData of students) {
+          try {
+            const existingStudent = await Student.findOne({ phone: studentData.phone });
+
+            if (existingStudent) {
+              const updated = await Student.findOneAndUpdate(
+                { phone: studentData.phone },
+                studentData,
+                { new: true, runValidators: true }
+              );
+              savedStudents.push(updated);
+            } else {
+              const newStudent = await Student.create(studentData);
+              savedStudents.push(newStudent);
+            }
+          } catch (err) {
+            updateErrors.push({
+              phone: studentData.phone,
+              error: err.message
+            });
+          }
+        }
+
+        return res.json({
+          success: true,
+          message: isUFM ? 'UFM CSV processed successfully' : 'CSV processed successfully',
+          data: {
+            totalProcessed: students.length,
+            successfulSaves: savedStudents.length,
+            parseErrors: errors.length,
+            saveErrors: updateErrors.length
+          },
+          errors: errors.length > 0 || updateErrors.length > 0 ? { parseErrors: errors, saveErrors: updateErrors } : undefined
+        });
+      } catch (error) {
+        console.error('Error processing students:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Error processing CSV data'
+        });
+      }
+    })
+    .on('error', (error) => {
+      fs.unlinkSync(req.file.path);
+      console.error('CSV parsing error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error parsing CSV file'
+      });
+    });
+};
 
 /**
  * Admin Login
@@ -64,150 +199,26 @@ export const adminLogin = async (req, res) => {
  */
 export const uploadCSV = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No CSV file uploaded'
-      });
-    }
-
-    // Validate file type
-    if (req.file.mimetype !== 'text/csv' && !req.file.originalname.endsWith('.csv')) {
-      // Delete uploaded file
-      fs.unlinkSync(req.file.path);
-      return res.status(400).json({
-        success: false,
-        message: 'Only CSV files are allowed'
-      });
-    }
-
-    const students = [];
-    const errors = [];
-    let lineNumber = 1;
-
-    // Parse CSV
-    fs.createReadStream(req.file.path)
-      .pipe(csvParser())
-      .on('data', (row) => {
-        lineNumber++;
-        
-        // Normalize row keys to lowercase for case-insensitive matching
-        const normalizedRow = {};
-        Object.keys(row).forEach(key => {
-          normalizedRow[key.toLowerCase().trim()] = row[key];
-        });
-        
-        // Validate required fields (case-insensitive)
-        const requiredFields = ['name', 'email', 'phone', 'course', 'campus', 'phase', 'university', 'department'];
-        const missingFields = requiredFields.filter(field => !normalizedRow[field]);
-        
-        if (missingFields.length > 0) {
-          errors.push({
-            line: lineNumber,
-            error: `Missing required fields: ${missingFields.join(', ')}`
-          });
-          return;
-        }
-
-        // Validate phone number
-        if (!/^\d{10}$/.test(normalizedRow.phone.trim())) {
-          errors.push({
-            line: lineNumber,
-            error: 'Phone number must be exactly 10 digits'
-          });
-          return;
-        }
-
-        students.push({
-          name: normalizedRow.name.trim(),
-          email: normalizedRow.email.trim().toLowerCase(),
-          phone: normalizedRow.phone.trim(),
-          course: normalizedRow.course.trim(),
-          campus: normalizedRow.campus.trim(),
-          phase: normalizedRow.phase.trim(),
-          university: normalizedRow.university.trim(),
-          department: normalizedRow.department.trim(),
-          offerLetterLink: normalizedRow.offerletterlink?.trim() || '',
-          result: normalizedRow.result?.trim() || '',
-          paymentLink: normalizedRow.paymentlink?.trim() || ''
-        });
-      })
-      .on('end', async () => {
-        try {
-          // Delete uploaded file
-          fs.unlinkSync(req.file.path);
-
-          if (students.length === 0) {
-            return res.status(400).json({
-              success: false,
-              message: 'No valid student data found in CSV',
-              errors
-            });
-          }
-
-          // Save or update students in database
-          const savedStudents = [];
-          const updateErrors = [];
-
-          for (const studentData of students) {
-            try {
-              // Check if student with same phone exists
-              const existingStudent = await Student.findOne({ phone: studentData.phone });
-
-              if (existingStudent) {
-                // Update existing student
-                const updated = await Student.findOneAndUpdate(
-                  { phone: studentData.phone },
-                  studentData,
-                  { new: true, runValidators: true }
-                );
-                savedStudents.push(updated);
-              } else {
-                // Create new student
-                const newStudent = await Student.create(studentData);
-                savedStudents.push(newStudent);
-              }
-            } catch (err) {
-              updateErrors.push({
-                phone: studentData.phone,
-                error: err.message
-              });
-            }
-          }
-
-          res.json({
-            success: true,
-            message: 'CSV processed successfully',
-            data: {
-              totalProcessed: students.length,
-              successfulSaves: savedStudents.length,
-              parseErrors: errors.length,
-              saveErrors: updateErrors.length
-            },
-            errors: errors.length > 0 || updateErrors.length > 0 ? { parseErrors: errors, saveErrors: updateErrors } : undefined
-          });
-
-        } catch (error) {
-          console.error('Error processing students:', error);
-          res.status(500).json({
-            success: false,
-            message: 'Error processing CSV data'
-          });
-        }
-      })
-      .on('error', (error) => {
-        // Delete uploaded file
-        fs.unlinkSync(req.file.path);
-        console.error('CSV parsing error:', error);
-        res.status(500).json({
-          success: false,
-          message: 'Error parsing CSV file'
-        });
-      });
-
+    return processStudentCSVUpload(req, res, { isUFM: false });
   } catch (error) {
     console.error('Upload CSV error:', error);
     res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+/**
+ * Upload UFM CSV and save students
+ * POST /api/admin/upload-ufm-csv
+ */
+export const uploadUFMCsv = async (req, res) => {
+  try {
+    return processStudentCSVUpload(req, res, { isUFM: true });
+  } catch (error) {
+    console.error('Upload UFM CSV error:', error);
+    return res.status(500).json({
       success: false,
       message: 'Internal server error'
     });
@@ -467,3 +478,72 @@ export const updateAnnouncement = async (req, res) => {
   }
 };
 
+/**
+ * Get UFM content
+ * GET /api/admin/ufm-content
+ */
+export const getUFMContent = async (req, res) => {
+  try {
+    let ufmContent = await UFMContent.findOne().sort({ updatedAt: -1 });
+
+    if (!ufmContent) {
+      ufmContent = await UFMContent.create({
+        content: '<p>No UFM details have been published yet.</p>',
+        updatedBy: 'Admin'
+      });
+    }
+
+    return res.json({
+      success: true,
+      ufmContent
+    });
+  } catch (error) {
+    console.error('Get UFM content error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch UFM content'
+    });
+  }
+};
+
+/**
+ * Update UFM content
+ * PUT /api/admin/ufm-content
+ */
+export const updateUFMContent = async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (content === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content is required'
+      });
+    }
+
+    let ufmContent = await UFMContent.findOne().sort({ updatedAt: -1 });
+
+    if (!ufmContent) {
+      ufmContent = await UFMContent.create({
+        content,
+        updatedBy: req.user?.email || 'Admin'
+      });
+    } else {
+      ufmContent.content = content;
+      ufmContent.updatedBy = req.user?.email || 'Admin';
+      await ufmContent.save();
+    }
+
+    return res.json({
+      success: true,
+      message: 'UFM content updated successfully',
+      ufmContent
+    });
+  } catch (error) {
+    console.error('Update UFM content error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update UFM content'
+    });
+  }
+};

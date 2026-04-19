@@ -54,6 +54,18 @@ const AdminNavbar = () => {
               )}
               {!isEmployee && (
                 <button
+                  onClick={() => navigate('/admin/ufm')}
+                  className={`px-5 py-2 rounded-lg font-medium transition-all ${
+                    isActive('/admin/ufm')
+                      ? 'bg-accent-yellow text-heading-dark'
+                      : 'text-pure-white hover:bg-white hover:bg-opacity-10'
+                  }`}
+                >
+                  UFM
+                </button>
+              )}
+              {!isEmployee && (
+                <button
                   onClick={() => navigate('/admin/employees')}
                   className={`px-5 py-2 rounded-lg font-medium transition-all ${
                     isActive('/admin/employees')

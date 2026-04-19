@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 //const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
 // Create axios instance
 const api = axios.create({
@@ -109,9 +109,22 @@ uploadCSV: (formData) => {
     }
   });
 },
+  uploadUFMCsv: (formData) => {
+    if (csrfToken) {
+      formData.append('_csrf', csrfToken);
+    }
+
+    return api.post('/admin/upload-ufm-csv', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+  },
   getStudents: () => api.get('/admin/students'),
   getAnnouncement: () => api.get('/admin/announcement'),
   updateAnnouncement: (content) => api.put('/admin/announcement', { content }),
+  getUFMContent: () => api.get('/admin/ufm-content'),
+  updateUFMContent: (content) => api.put('/admin/ufm-content', { content }),
   addEmployee: (phone) => api.post('/admin/employees', { phone }),
   getEmployees: () => api.get('/admin/employees'),
   updateEmployee: (id, phone) => api.put(`/admin/employees/${id}`, { phone }),
@@ -124,6 +137,7 @@ export const studentAPI = {
   verifyOTP: (phone, otp) => api.post('/student/verify-otp', { phone, otp }),
   getProfile: () => api.get('/student/profile'),
   getAnnouncement: () => api.get('/student/announcement'),
+  getUFMContent: () => api.get('/student/ufm-content'),
 };
 
 export default api;

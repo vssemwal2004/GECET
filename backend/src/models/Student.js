@@ -59,6 +59,15 @@ const studentSchema = new mongoose.Schema({
   paymentLink: {
     type: String,
     trim: true
+  },
+  isUFM: {
+    type: Boolean,
+    default: false
+  },
+  uploadSource: {
+    type: String,
+    enum: ['regular', 'ufm'],
+    default: 'regular'
   }
 }, {
   timestamps: true

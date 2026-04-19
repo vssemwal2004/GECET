@@ -35,7 +35,8 @@ const StudentDatabase = () => {
     student.course?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.phase?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.university?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.department?.toLowerCase().includes(searchTerm.toLowerCase())
+    student.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.uploadSource?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -133,6 +134,9 @@ const StudentDatabase = () => {
                       Result
                     </th>
                     <th className="px-3 py-2.5 text-left text-xs font-semibold text-pure-white uppercase tracking-wide">
+                      Source
+                    </th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-pure-white uppercase tracking-wide">
                       Links
                     </th>
                   </tr>
@@ -172,6 +176,13 @@ const StudentDatabase = () => {
                       <td className="px-3 py-2 whitespace-nowrap">
                          <span className="text-sm text-gray-900">
                           {student.result || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
+                          student.isUFM ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                        }`}>
+                          {student.isUFM ? 'UFM' : 'Regular'}
                         </span>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs">
