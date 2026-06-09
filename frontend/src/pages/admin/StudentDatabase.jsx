@@ -39,6 +39,59 @@ const StudentDatabase = () => {
     student.uploadSource?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const csvColumns = [
+    { label: 'Name', value: (student) => student.name },
+    { label: 'Email', value: (student) => student.email },
+    { label: 'Phone', value: (student) => student.phone },
+    { label: 'Course', value: (student) => student.course },
+    { label: 'Campus', value: (student) => student.campus },
+    { label: 'Phase', value: (student) => student.phase },
+    { label: 'University', value: (student) => student.university },
+    { label: 'Department', value: (student) => student.department },
+    { label: 'Result', value: (student) => student.result },
+    { label: 'Source', value: (student) => student.uploadSource || (student.isUFM ? 'ufm' : 'regular') },
+    { label: 'Is UFM', value: (student) => (student.isUFM ? 'Yes' : 'No') },
+    { label: 'Offer Letter Link', value: (student) => student.offerLetterLink },
+    { label: 'Payment Link', value: (student) => student.paymentLink },
+    { label: 'Created At', value: (student) => student.createdAt },
+    { label: 'Updated At', value: (student) => student.updatedAt }
+  ];
+
+  const escapeCsvValue = (value) => {
+    const safeValue = value ?? '';
+    const stringValue = String(safeValue);
+
+    if (/[",\n\r]/.test(stringValue)) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+
+    return stringValue;
+  };
+
+  const downloadStudentsCsv = () => {
+    if (filteredStudents.length === 0) {
+      return;
+    }
+
+    const headerRow = csvColumns.map((column) => escapeCsvValue(column.label)).join(',');
+    const dataRows = filteredStudents.map((student) =>
+      csvColumns.map((column) => escapeCsvValue(column.value(student))).join(',')
+    );
+    const csvContent = [headerRow, ...dataRows].join('\n');
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    const filePrefix = searchTerm ? 'filtered-student-data' : 'student-data';
+
+    link.href = url;
+    link.download = `${filePrefix}-${dateStamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <AdminNavbar />
@@ -53,15 +106,27 @@ const StudentDatabase = () => {
                 Total Students: <span className="font-semibold text-primary-purple">{students.length}</span>
               </p>
             </div>
-            <button
-              onClick={fetchStudents}
-              className="bg-primary-purple text-pure-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center space-x-1.5"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Refresh</span>
-            </button>
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                onClick={downloadStudentsCsv}
+                disabled={filteredStudents.length === 0}
+                className="bg-accent-yellow text-heading-dark px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center space-x-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Download CSV</span>
+              </button>
+              <button
+                onClick={fetchStudents}
+                className="bg-primary-purple text-pure-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center space-x-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Refresh</span>
+              </button>
+            </div>
           </div>
 
           {/* Search Bar */}
